@@ -11,20 +11,29 @@ Material2d trait
 Material2dPlugin
 MaterialMesh2dBundle
 ### in wgsl code
+```
 #import bevy_sprite::mesh2d_types
 #import bevy_sprite::mesh2d_view_bindings // contains the globals.time
+```
 
 #### shaders and code located in
 bevy/crates/bevy_sprite/src/render
+
 bevy/crates/bevy_sprite/src/mesh2d
 
 ## 3D
 Material trait
+
 MaterialPlugin
+
 MaterialMeshBundle
+
 ### in wgsl code
+```
 #import bevy_pbr::mesh_types
 #import bevy_pbr::mesh_view_bindings // contains the globals.time
+```
+
 #### shaders and code located in
 bevy/crates/bevy_pbr/src/render
 
