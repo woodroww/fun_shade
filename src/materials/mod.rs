@@ -13,10 +13,10 @@ pub struct CoolMaterial {
 
 impl Material for CoolMaterial {
     fn vertex_shader() -> ShaderRef {
-       "my_vert.wgsl".into()
+       "shaders/my_vert.wgsl".into()
     }
     fn fragment_shader() -> ShaderRef {
-        "my_frag.wgsl".into()
+        "shaders/my_frag.wgsl".into()
     }
     // this allows transparency
     fn alpha_mode(&self) -> AlphaMode {
@@ -43,9 +43,28 @@ pub struct GeometryMaterial {
 
 impl Material for GeometryMaterial {
     fn vertex_shader() -> ShaderRef {
-        "geo_vert.wgsl".into()
+        "shaders/geo_vert.wgsl".into()
     }
     fn fragment_shader() -> ShaderRef {
-        "geo_frag.wgsl".into()
+        "shaders/geo_frag.wgsl".into()
+    }
+}
+
+
+#[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
+#[uuid = "5F9B8800-B148-487B-B43F-50CC36CB8114"]
+pub struct JammyMaterial {
+//    #[uniform(0)]
+    #[texture(1)]
+    #[sampler(2)]
+    pub color_texture: Handle<Image>,
+}
+
+impl Material for JammyMaterial {
+    fn vertex_shader() -> ShaderRef {
+        "shaders/tex_vert.wgsl".into()
+    }
+    fn fragment_shader() -> ShaderRef {
+        "shaders/tex_frag.wgsl".into()
     }
 }

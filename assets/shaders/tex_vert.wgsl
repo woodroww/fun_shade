@@ -14,17 +14,16 @@ struct Vertex {
     @location(2) uv: vec2<f32>,
 };
 
+let TAU = 6.283185307179586;
+
 @vertex
 fn vertex(vertex: Vertex) -> VertexOutput {
 
-    let TAU = 6.283185307179586;
-    var wave = cos((vertex.uv.y - globals.time * 0.1) * TAU * 3.0);
-    var amplitude = 0.1;
     var position = vertex.position;
-    position.y = wave * amplitude;
 
     var out: VertexOutput;
     out.uv = vertex.uv;
+    //out.uv.x += globals.time * 0.1;
 
     // local_to_world
     let world_position = mesh.model * vec4<f32>(position, 1.0);
