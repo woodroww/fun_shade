@@ -9,7 +9,13 @@ struct VertexOutput {
 
 @fragment
 fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(0.0, 0.0, 0.9, 1.0);
+    //return vec4<f32>(0.0, 0.0, 0.9, 1.0);
+
+    let TAU = 6.283185307179586;
+    var t = cos((input.uv.y - globals.time * 0.1) * TAU * 3.0);
+    t *= 1.0 - input.uv.y;
+    return vec4<f32>(t);
+
     //return vec4<f32>(t);
     //return vec4<f32>(input.uv, 0.0, 1.0);
     //return vec4<f32>(input.world_normal + 0.0, 0.0);

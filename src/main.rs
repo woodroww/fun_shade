@@ -99,7 +99,7 @@ fn check_load(
             Name::from("plane"),
             PickableBundle::default(),
             bevy_transform_gizmo::GizmoTransformable,
-            Wireframe,
+            //Wireframe,
         ));
         *loaded = true;
     }
