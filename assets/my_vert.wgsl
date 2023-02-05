@@ -34,7 +34,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     var out: VertexOutput;
     out.world_position = vec4<f32>(vertex.position, 1.0);// idk
     var uv_scale: f32 = 1.0;
-    var uv_offset: f32 = -0.0;
+    var uv_offset: f32 = 0.0;//-0.0; //(globals.time % 5.0) * 0.05;
     out.uv = (vertex.uv + uv_offset) * uv_scale;
 
     // ~/prog/extern/bevy/crates/bevy_pbr/src/render/mesh_functions.wgsl
@@ -43,7 +43,11 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     // world_to_clip
     let clip = view.view_proj * world_position;
     out.clip_position = clip;
+
     // mesh_normal_local_to_world
+    // world normals is the weird one,
+    // where the normal colors point in the same direction,
+    // regardless of the object's orientation
     out.world_normal = normalize(
         mat3x3<f32>(
             mesh.inverse_transpose_model[0].xyz,
@@ -51,9 +55,9 @@ fn vertex(vertex: Vertex) -> VertexOutput {
             mesh.inverse_transpose_model[2].xyz
         ) * vertex.normal
     );
-    // the above mesh_normal_local_to_world seems to do nothing
-    // compared to just passing vertex.normal
-    //out.world_normal = vertex.normal;
+
+    // this is what you usually want
+    out.world_normal = vertex.normal;
 
     return out;
 }

@@ -8,8 +8,13 @@ bevy/assets/shaders
 
 ## 2D
 Material2d trait
+
 Material2dPlugin
+
 MaterialMesh2dBundle
+
+Material2dPipeline
+
 ### in wgsl code
 ```
 #import bevy_sprite::mesh2d_types
@@ -27,6 +32,8 @@ Material trait
 MaterialPlugin
 
 MaterialMeshBundle
+
+MaterialPipeline
 
 ### in wgsl code
 ```
