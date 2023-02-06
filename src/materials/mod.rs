@@ -50,7 +50,6 @@ impl Material for GeometryMaterial {
     }
 }
 
-
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
 #[uuid = "5F9B8800-B148-487B-B43F-50CC36CB8114"]
 pub struct JammyMaterial {
@@ -66,5 +65,35 @@ impl Material for JammyMaterial {
     }
     fn fragment_shader() -> ShaderRef {
         "shaders/tex_frag.wgsl".into()
+    }
+}
+
+#[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
+#[uuid = "5F9B8800-B148-487B-B43F-50CC36CB8114"]
+pub struct GLSLMaterial {
+    #[uniform(0)]
+    pub color: Color,
+    #[texture(1)]
+    #[sampler(2)]
+    pub color_texture: Handle<Image>,
+    pub alpha_mode: AlphaMode,
+}
+
+impl Material for GLSLMaterial {
+    fn vertex_shader() -> ShaderRef {
+        "shaders/tex.vert".into()
+    }
+    fn fragment_shader() -> ShaderRef {
+        "shaders/tex.frag".into()
+    }
+    fn specialize(
+        _pipeline: &MaterialPipeline<Self>,
+        descriptor: &mut RenderPipelineDescriptor,
+        _layout: &MeshVertexBufferLayout, // an entitys layout
+        _key: MaterialPipelineKey<Self>, // an entitys key
+    ) -> Result<(), SpecializedMeshPipelineError> {
+        descriptor.vertex.entry_point = "main".into();
+        descriptor.fragment.as_mut().unwrap().entry_point = "main".into();
+        Ok(())
     }
 }

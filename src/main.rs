@@ -16,7 +16,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::{DefaultPickingPlugins, PickableBundle, PickingCameraBundle};
 use materials::{CoolMaterial, GeometryMaterial};
 
-use crate::materials::JammyMaterial;
+use crate::materials::{JammyMaterial, GLSLMaterial};
 
 pub const CLEAR: Color = Color::rgb(0.3, 0.3, 0.3);
 pub const HEIGHT: f32 = 900.0;
@@ -60,7 +60,8 @@ fn main() {
         .insert_resource(Msaa { samples: 4 })
         .add_plugin(MaterialPlugin::<CoolMaterial>::default())
         .add_plugin(MaterialPlugin::<GeometryMaterial>::default())
-        .add_plugin(MaterialPlugin::<JammyMaterial>::default())
+        .add_plugin(MaterialPlugin::<GLSLMaterial>::default())
+        .register_type::<GLSLMaterial>()  
         .add_plugin(WorldInspectorPlugin)
         .add_plugin(CameraPlugin)
         .add_plugins(DefaultPickingPlugins)
@@ -85,7 +86,7 @@ fn check_load(
     asset_server: Res<AssetServer>,
     mut loaded: Local<bool>,
     mut geo_materials: ResMut<Assets<GeometryMaterial>>,
-    mut jammy_materials: ResMut<Assets<JammyMaterial>>,
+    mut glsl_materials: ResMut<Assets<GLSLMaterial>>,
     meshes: Res<Assets<GltfMesh>>,
 ) {
     use bevy::asset::LoadState;
@@ -110,13 +111,15 @@ fn check_load(
             MaterialMeshBundle {
                 //mesh: mesh_assets.add(Mesh::from(shape::Box::new(2.0, 0.1, 2.0))),
                 mesh: gltf_mesh.primitives[0].mesh.clone(),
-                material: jammy_materials.add(JammyMaterial {
+                material: glsl_materials.add(GLSLMaterial {
                     color_texture: asset_server.load("images/map.png"),
+                    color: Color::BLUE,
+                    alpha_mode: AlphaMode::Blend,
                 }),
                 transform: Transform::from_xyz(0.0, 0.0, 2.0),
                 ..default()
             },
-            Name::from("plane"),
+            Name::from("glsl plane"),
             PickableBundle::default(),
             bevy_transform_gizmo::GizmoTransformable,
             //Wireframe,
