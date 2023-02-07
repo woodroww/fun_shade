@@ -23,7 +23,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
 
     var out: VertexOutput;
     out.uv = vertex.uv;
-    //out.uv.x += globals.time * 0.1;
+    out.uv.y += globals.time * 0.1;
 
     // local_to_world
     let world_position = mesh.model * vec4<f32>(position, 1.0);

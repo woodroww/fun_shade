@@ -51,20 +51,20 @@ impl Material for GeometryMaterial {
 }
 
 #[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
-#[uuid = "5F9B8800-B148-487B-B43F-50CC36CB8114"]
-pub struct JammyMaterial {
+#[uuid = "D8E4526D-3C81-47B6-8D23-E88D578057A0"]
+pub struct MovingTextureMaterial {
 //    #[uniform(0)]
     #[texture(1)]
     #[sampler(2)]
     pub color_texture: Handle<Image>,
 }
 
-impl Material for JammyMaterial {
+impl Material for MovingTextureMaterial {
     fn vertex_shader() -> ShaderRef {
-        "shaders/tex_vert.wgsl".into()
+        "shaders/moving_vert.wgsl".into()
     }
     fn fragment_shader() -> ShaderRef {
-        "shaders/tex_frag.wgsl".into()
+        "shaders/moving_frag.wgsl".into()
     }
 }
 

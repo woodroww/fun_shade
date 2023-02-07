@@ -1,7 +1,7 @@
 use bevy::{
     pbr::wireframe::{Wireframe, WireframeConfig, WireframePlugin},
     prelude::*,
-    render::settings::{WgpuFeatures, WgpuSettings},
+    render::{settings::{WgpuFeatures, WgpuSettings}, texture::ImageSampler, render_resource::{SamplerDescriptor, AddressMode}},
     window::PresentMode, gltf::GltfMesh,
 };
 
@@ -18,7 +18,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_mod_picking::{DefaultPickingPlugins, PickableBundle, PickingCameraBundle};
 use materials::{CoolMaterial, GeometryMaterial};
 
-use crate::materials::{JammyMaterial, GLSLMaterial};
+use crate::materials::{GLSLMaterial, MovingTextureMaterial};
 
 pub const CLEAR: Color = Color::rgb(0.3, 0.3, 0.3);
 pub const HEIGHT: f32 = 900.0;
@@ -28,6 +28,7 @@ pub const WIDTH: f32 = 900.0;
 #[derive(Resource)]
 struct AppAssets {
     gltf_plane: Handle<GltfMesh>,
+    map_image: Handle<Image>,
     //compute_plane: Handle<SubdividedPlane>,
 }
 
@@ -64,6 +65,7 @@ fn main() {
         .add_plugin(MaterialPlugin::<CoolMaterial>::default())
         .add_plugin(MaterialPlugin::<GeometryMaterial>::default())
         .add_plugin(MaterialPlugin::<GLSLMaterial>::default())
+        .add_plugin(MaterialPlugin::<MovingTextureMaterial>::default())
         .register_type::<GLSLMaterial>()  
         .add_plugin(WorldInspectorPlugin)
         .add_plugin(CameraPlugin)
@@ -78,9 +80,10 @@ fn main() {
         .run();
 }
 
-fn load_assets(mut commands: Commands, assets: Res<AssetServer>) {
-    let plane = assets.load("plane.gltf#Mesh0");
-    commands.insert_resource(AppAssets { gltf_plane: plane });
+fn load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let gltf_plane = asset_server.load("plane.gltf#Mesh0");
+    let map_image = asset_server.load("images/map.png");
+    commands.insert_resource(AppAssets { gltf_plane, map_image });
 }
 
 fn check_load(
@@ -88,43 +91,36 @@ fn check_load(
     app_assets: Res<AppAssets>,
     asset_server: Res<AssetServer>,
     mut loaded: Local<bool>,
-    mut geo_materials: ResMut<Assets<GeometryMaterial>>,
     mut glsl_materials: ResMut<Assets<GLSLMaterial>>,
-    meshes: Res<Assets<GltfMesh>>,
+    mut jam_materials:  ResMut<Assets<MovingTextureMaterial>>,
     mut mesh_assets: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
 ) {
     use bevy::asset::LoadState;
-    let plane = shape::Plane { size: 5.0 };
 
-    if !*loaded && asset_server.get_load_state(app_assets.gltf_plane.clone()) == LoadState::Loaded {
-        let gltf_mesh = meshes.get(&app_assets.gltf_plane).unwrap();
-        commands.spawn((
-            MaterialMeshBundle {
-                //mesh: mesh_assets.add(Mesh::from(shape::Box::new(2.0, 0.1, 2.0))),
-                //mesh: gltf_mesh.primitives[0].mesh.clone(),
-                mesh: mesh_assets.add(Mesh::from(SubdividedPlane { x_vertex_count: 25, z_vertex_count: 25 })),
-                material: geo_materials.add(GeometryMaterial {}),
-                transform: Transform::from_xyz(-2.0, 0.0, 0.0),//.with_scale(Vec3::splat(2.0)),
-                ..default()
-            },
-            Name::from("plane"),
-            PickableBundle::default(),
-            bevy_transform_gizmo::GizmoTransformable,
-            //Wireframe,
-        ));
+    if !*loaded && asset_server.get_load_state(app_assets.map_image.clone()) == LoadState::Loaded {
+        let plane_size = 0.75;
+        match images.get_mut(&app_assets.map_image) {
+            Some(mut image) => {
+                let mut descriptor = SamplerDescriptor::default();
+                descriptor.address_mode_u = AddressMode::Repeat;
+                descriptor.address_mode_v = AddressMode::Repeat;
+                image.sampler_descriptor = ImageSampler::Descriptor(descriptor);
+            }
+            None => {
+            }
+        }
 
         commands.spawn((
             MaterialMeshBundle {
-                mesh: mesh_assets.add(Mesh::from(SubdividedPlane { x_vertex_count: 4, z_vertex_count: 4 })),
-                material: glsl_materials.add(GLSLMaterial {
-                    color_texture: asset_server.load("images/map.png"),
-                    color: Color::BLUE,
-                    alpha_mode: AlphaMode::Blend,
+                mesh: mesh_assets.add(Mesh::from(SubdividedPlane { subdivisions: 2, size: plane_size })),
+                material: jam_materials.add(MovingTextureMaterial {
+                    color_texture: app_assets.map_image.clone(),
                 }),
-                transform: Transform::from_xyz(0.0, 0.0, 2.0),
+                transform: Transform::from_xyz(1.1, 0.0, 2.0),
                 ..default()
             },
-            Name::from("subdivide glsl plane"),
+            Name::from("jammy"),
             PickableBundle::default(),
             bevy_transform_gizmo::GizmoTransformable,
             Wireframe,
@@ -132,9 +128,9 @@ fn check_load(
 
         commands.spawn((
             MaterialMeshBundle {
-                mesh: mesh_assets.add(Mesh::from(shape::Plane { size: 1.0 })),
+                mesh: mesh_assets.add(Mesh::from(shape::Plane { size: plane_size })),
                 material: glsl_materials.add(GLSLMaterial {
-                    color_texture: asset_server.load("images/map.png"),
+                    color_texture: app_assets.map_image.clone(),
                     color: Color::BLUE,
                     alpha_mode: AlphaMode::Blend,
                 }),
@@ -156,6 +152,7 @@ fn setup(
     mut materials: ResMut<Assets<CoolMaterial>>,
     mut pbr_materials: ResMut<Assets<StandardMaterial>>,
     mut wireframe_config: ResMut<WireframeConfig>,
+    mut geo_materials: ResMut<Assets<GeometryMaterial>>,
 ) {
     wireframe_config.global = false;
 
@@ -170,8 +167,21 @@ fn setup(
     });
 
     commands.spawn((
+        MaterialMeshBundle {
+            mesh: mesh_assets.add(Mesh::from(SubdividedPlane { subdivisions: 25, size: 1.0 })),
+            material: geo_materials.add(GeometryMaterial {}),
+            transform: Transform::from_xyz(-2.0, 0.0, 0.0),//.with_scale(Vec3::splat(2.0)),
+            ..default()
+        },
+        Name::from("plane"),
+        PickableBundle::default(),
+        bevy_transform_gizmo::GizmoTransformable,
+        //Wireframe,
+    ));
+
+    commands.spawn((
         PbrBundle {
-            mesh: mesh_assets.add(Mesh::from(SubdividedPlane { x_vertex_count: 2, z_vertex_count: 2 })),
+            mesh: mesh_assets.add(Mesh::from(SubdividedPlane { subdivisions: 1, size: 1.0 })),
             material: pbr_materials.add(Color::rgb(0.4, 0.4, 1.0).into()),
             transform: Transform::from_xyz(0.0, 0.0, -2.0),
             ..default()
