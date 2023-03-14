@@ -57,6 +57,10 @@ pub struct MovingTextureMaterial {
     #[texture(1)]
     #[sampler(2)]
     pub color_texture: Handle<Image>,
+    #[texture(3)]
+    pub pattern: Handle<Image>,
+    #[texture(4)]
+    pub rock: Handle<Image>,
 }
 
 impl Material for MovingTextureMaterial {
@@ -95,5 +99,37 @@ impl Material for GLSLMaterial {
         descriptor.vertex.entry_point = "main".into();
         descriptor.fragment.as_mut().unwrap().entry_point = "main".into();
         Ok(())
+    }
+}
+
+#[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
+#[uuid = "545B018A-F802-4BD0-9E31-2F94361BE939"]
+pub struct HealthBarMaterial {
+    #[uniform(0)]
+    pub health: f32,
+    #[texture(1)]
+    #[sampler(2)]
+    pub color_texture: Handle<Image>,
+}
+impl Material for HealthBarMaterial {
+    fn vertex_shader() -> ShaderRef {
+        "shaders/health_vert.wgsl".into()
+    }
+    fn fragment_shader() -> ShaderRef {
+        "shaders/health_frag.wgsl".into()
+    }
+}
+
+#[derive(AsBindGroup, TypeUuid, Clone, Reflect)]
+#[uuid = "3A7DAA59-99DB-44D3-A778-2F1A6B1DFA5E"]
+pub struct WorldSpaceMaterial {
+}
+
+impl Material for WorldSpaceMaterial {
+    fn vertex_shader() -> ShaderRef {
+        "shaders/world_vert.wgsl".into()
+    }
+    fn fragment_shader() -> ShaderRef {
+        "shaders/world_frag.wgsl".into()
     }
 }
